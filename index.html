@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分享链接提取工具</title>
+    <style>
+        /* 添加一些基本的样式，可根据需要进一步自定义样式 */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            /* 调整容器的最大宽度，适应 PC 端 */
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        #result {
+            margin-top: 20px;
+            white-space: pre-line;
+            /* 保留换行符 */
+        }
+
+        /* 在小屏幕上应用不同的样式 */
+        @media screen and (max-width: 600px) {
+            #result {
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                text-align: left;
+                /* 左对齐链接 */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>分享链接提取工具</h1>
+        <div class="form">
+            <input type="text" id="inputField" placeholder="输入要提取的链接">
+            <button id="submitButton">提取链接</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 预编译正则表达式，用于匹配链接
+        const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/g;
+
+        // 监听文档内容加载完成事件
+        document.addEventListener("DOMContentLoaded", function () {
+            // 获取页面中的元素
+            const inputField = document.getElementById("inputField"); // 输入框
+            const submitButton = document.getElementById("submitButton"); // 提交按钮
+            const resultDiv = document.getElementById("result"); // 结果展示区域
+            let linkCount = 0; // 链接计数器，用于给链接编号
+
+            // 监听提交按钮的点击事件
+            submitButton.addEventListener("click", function () {
+                // 获取用户在输入框中输入的文本
+                const userInput = inputField.value;
+                // 调用 removeNonURLCharacters 函数，移除文本中的非链接字符
+                const cleanedText = removeNonURLCharacters(userInput);
+                // 调用 extractLinks 函数，提取链接并存储在数组中
+                const extractedLinks = extractLinks(cleanedText, urlRegex);
+
+                if (extractedLinks.length > 0) {
+                    // 格式化链接并复制到剪贴板
+                    const formattedLinksForDisplay = formatLinks(extractedLinks, true);
+                    const formattedLinksForClipboard = formatLinks(extractedLinks, false);
+                    copyToClipboard(formattedLinksForClipboard);
+                    // 在页面上展示链接
+                    resultDiv.innerHTML = `链接已提取并复制到剪贴板：<br><br>${formattedLinksForDisplay}`;
+                } else {
+                    // 如果未找到链接，显示相应消息
+                    resultDiv.textContent = "未找到链接。";
+                }
+
+                // 清空输入框
+                inputField.value = "";
+            });
+
+            // 移除非链接字符的函数
+            function removeNonURLCharacters(text) {
+                // 使用正则表达式替换非链接字符为空字符串
+                return text.replace(/[^\x20-\x7E]+/g, "");
+            }
+
+            // 提取链接的函数
+            function extractLinks(text, regex) {
+                const extractedLinks = [];
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    extractedLinks.push(match[0]);
+                }
+                return extractedLinks;
+            }
+
+            // 格式化链接的函数
+            function formatLinks(links, withAnchorTags) {
+                // 重新编号链接之前，将计数器重置为0
+                linkCount = 0;
+                return links.map(link => {
+                    // 增加链接计数
+                    linkCount++;
+                    if (withAnchorTags) {
+                        // 如果需要添加<a>标签，格式化链接并返回
+                        return `${linkCount}. <a href="${link}" target="_blank">${link}</a><br><br>`;
+                    } else {
+                        // 否则，仅格式化链接
+                        return `${linkCount}. ${link}\n\n`;
+                    }
+                }).join("");
+            }
+
+            // 复制文本到剪贴板的函数
+            function copyToClipboard(text) {
+                // 创建一个文本区域元素
+                const textarea = document.createElement("textarea");
+                // 将文本赋值给文本区域
+                textarea.value = text;
+                // 将文本区域添加到页面中
+                document.body.appendChild(textarea);
+                // 选中文本
+                textarea.select();
+                // 执行复制命令
+                document.execCommand("copy");
+                // 移除文本区域
+                document.body.removeChild(textarea);
+            }
+        });
+    </script>
+</body>
+
+</html>
