@@ -6,32 +6,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>分享链接提取工具</title>
     <style>
-        /* 添加一些基本的样式，可根据需要进一步自定义样式 */
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         .container {
             max-width: 1200px;
-            /* 调整容器的最大宽度，适应 PC 端 */
             margin: 0 auto;
             padding: 20px;
+        }
+
+        .form {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #inputField,
+        #submitButton {
+            margin: 10px;
+            padding: 10px;
+            font-size: 1em;
+        }
+
+        #inputField {
+            flex-grow: 1;
+            min-width: 200px;
         }
 
         #result {
             margin-top: 20px;
             white-space: pre-line;
-            /* 保留换行符 */
         }
 
-        /* 在小屏幕上应用不同的样式 */
+        #submitButton:hover {
+            background-color: #ddd;
+            cursor: pointer;
+        }
+
         @media screen and (max-width: 600px) {
+            .form {
+                flex-direction: column;
+            }
+
+            #inputField,
+            #submitButton {
+                width: 100%;
+            }
+
             #result {
-                margin-bottom: 10px;
-                padding-bottom: 10px;
                 text-align: left;
-                /* 左对齐链接 */
             }
         }
     </style>
@@ -51,18 +79,25 @@
         // 预编译正则表达式，用于匹配链接
         const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/g;
 
+        // 获取页面中的元素
+        const inputField = document.getElementById("inputField"); // 输入框
+        const submitButton = document.getElementById("submitButton"); // 提交按钮
+        const resultDiv = document.getElementById("result"); // 结果展示区域
+        let linkCount = 0; // 链接计数器，用于给链接编号
+
         // 监听文档内容加载完成事件
         document.addEventListener("DOMContentLoaded", function () {
-            // 获取页面中的元素
-            const inputField = document.getElementById("inputField"); // 输入框
-            const submitButton = document.getElementById("submitButton"); // 提交按钮
-            const resultDiv = document.getElementById("result"); // 结果展示区域
-            let linkCount = 0; // 链接计数器，用于给链接编号
-
             // 监听提交按钮的点击事件
             submitButton.addEventListener("click", function () {
                 // 获取用户在输入框中输入的文本
-                const userInput = inputField.value;
+                const userInput = inputField.value.trim();
+
+                // 如果用户输入为空，显示提示并提前返回
+                if (!userInput) {
+                    resultDiv.textContent = "请输入要提取的链接。";
+                    return;
+                }
+
                 // 调用 removeNonURLCharacters 函数，移除文本中的非链接字符
                 const cleanedText = removeNonURLCharacters(userInput);
                 // 调用 extractLinks 函数，提取链接并存储在数组中
@@ -119,18 +154,7 @@
 
             // 复制文本到剪贴板的函数
             function copyToClipboard(text) {
-                // 创建一个文本区域元素
-                const textarea = document.createElement("textarea");
-                // 将文本赋值给文本区域
-                textarea.value = text;
-                // 将文本区域添加到页面中
-                document.body.appendChild(textarea);
-                // 选中文本
-                textarea.select();
-                // 执行复制命令
-                document.execCommand("copy");
-                // 移除文本区域
-                document.body.removeChild(textarea);
+                navigator.clipboard.writeText(text);
             }
         });
     </script>
